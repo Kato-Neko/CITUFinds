@@ -6,17 +6,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -28,8 +26,6 @@ import com.jamburger.kitter.utilities.DateTimeFormatter;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.annotation.Nullable;
 
 public class ChatActivity extends AppCompatActivity {
     private static final String TAG = "ChatActivity";
@@ -66,6 +62,7 @@ public class ChatActivity extends AppCompatActivity {
 
                 messageAdapter = new MessageAdapter(this, fellow.getProfileImageUrl());
                 recyclerViewMessages.setHasFixedSize(true);
+                recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
                 recyclerViewMessages.setAdapter(messageAdapter);
 
                 getChatData();
@@ -95,22 +92,20 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void readMessages() {
-        chatReference.orderBy("messageId").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.e(TAG, "Listen failed.", e);
-                    return;
-                }
+        chatReference.orderBy("messageId").addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.e(TAG, "Listen failed.", e);
+                return;
+            }
 
-                messageAdapter.clearMessages();
-                Message lastMessage = null;
+            if (snapshots != null) {
                 for (DocumentChange dc : snapshots.getDocumentChanges()) {
                     DocumentSnapshot documentSnapshot = dc.getDocument();
                     Message nextMessage = documentSnapshot.toObject(Message.class);
                     Log.d(TAG, "Message received: ID=" + nextMessage.getMessageId() + ", Text=" + nextMessage.getText() + ", SenderID=" + nextMessage.getSenderId());
 
                     String nextDateMonth = DateTimeFormatter.getDateMonth(nextMessage.getMessageId());
+                    Message lastMessage = messageAdapter.getLastMessage();
 
                     if (lastMessage == null) {
                         String today = DateTimeFormatter.getDateMonth(DateTimeFormatter.getCurrentTime());
@@ -128,10 +123,10 @@ public class ChatActivity extends AppCompatActivity {
                     }
 
                     messageAdapter.addMessage(nextMessage);
-                    lastMessage = nextMessage;
                 }
-                if (messageAdapter.getItemCount() > 0)
-                    recyclerViewMessages.getLayoutManager().smoothScrollToPosition(recyclerViewMessages, new RecyclerView.State(), messageAdapter.getItemCount() - 1);
+                if (messageAdapter.getItemCount() > 0) {
+                    recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
+                }
             }
         });
     }

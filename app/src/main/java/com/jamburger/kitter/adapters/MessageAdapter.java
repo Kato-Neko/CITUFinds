@@ -100,6 +100,10 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         notifyDataSetChanged();
     }
 
+    public Message getLastMessage() {
+        return messages.isEmpty() ? null : messages.get(messages.size() - 1);
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView message, time;
         ImageView profileImage;
