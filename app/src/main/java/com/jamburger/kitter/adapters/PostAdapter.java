@@ -116,10 +116,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                // Handle error
             }
         });
-
 
         holder.postImage.setOnClickListener(view -> {
             long clickTime = System.currentTimeMillis();

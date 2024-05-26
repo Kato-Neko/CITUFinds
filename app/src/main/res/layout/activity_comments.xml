@@ -40,6 +40,8 @@
         android:layout_height="match_parent"
         android:layout_above="@id/footer"
         android:layout_below="@id/header"
+        android:layout_marginTop="-3dp"
+        android:layout_marginBottom="13dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     <RelativeLayout

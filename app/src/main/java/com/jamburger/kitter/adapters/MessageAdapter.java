@@ -1,6 +1,7 @@
 package com.jamburger.kitter.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +27,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     String myUID;
     Context mContext;
     List<Message> messages;
-
 
     public MessageAdapter(Context mContext, String fellowProfileImageUrl) {
         this.mContext = mContext;
@@ -57,30 +57,32 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         Message message = messages.get(position);
         Message nextMessage = position + 1 < messages.size() ? messages.get(position + 1) : null;
 
+        Log.d("MessageAdapter", "Binding message: " + message.getText() + " at position: " + position);
+
         if (holder.getItemViewType() == MESSAGE_LAYOUT) {
             holder.message.setText(message.getText());
             holder.time.setText(DateTimeFormatter.getHoursMinutes(message.getMessageId()));
+            Log.d("MessageAdapter", "Message time: " + holder.time.getText());
 
             if (myUID.equals(message.getSenderId())) {
                 holder.container.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
                 holder.profileImage.setVisibility(View.GONE);
+                Log.d("MessageAdapter", "Message sent by me, hiding profile image");
             } else {
                 holder.container.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
-                if (nextMessage == null || nextMessage.getSenderId().equals(myUID)) {
+                if (nextMessage == null || !nextMessage.getSenderId().equals(message.getSenderId())) {
                     holder.profileImage.setVisibility(View.VISIBLE);
                     Glide.with(mContext).load(fellowProfileImageUrl).into(holder.profileImage);
+                    Log.d("MessageAdapter", "Message sent by fellow, showing profile image");
                 } else {
                     holder.profileImage.setVisibility(View.INVISIBLE);
+                    Log.d("MessageAdapter", "Message sent by fellow, but next message is from the same sender, hiding profile image");
                 }
             }
         } else {
             holder.timestamp.setText(message.getText());
+            Log.d("MessageAdapter", "Timestamp: " + message.getText());
         }
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
-        super.onBindViewHolder(holder, position, payloads);
     }
 
     @Override

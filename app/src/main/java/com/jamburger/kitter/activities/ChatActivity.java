@@ -1,6 +1,7 @@
 package com.jamburger.kitter.activities;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,27 +12,34 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.jamburger.kitter.R;
 import com.jamburger.kitter.adapters.MessageAdapter;
 import com.jamburger.kitter.components.Message;
 import com.jamburger.kitter.components.User;
 import com.jamburger.kitter.utilities.DateTimeFormatter;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
 public class ChatActivity extends AppCompatActivity {
+    private static final String TAG = "ChatActivity";
     User fellow;
     String myUID, fellowUID;
     TextView username;
     EditText message;
     MessageAdapter messageAdapter;
     RecyclerView recyclerViewMessages;
-    DatabaseReference chatReference;
+    CollectionReference chatReference;
     ImageView profileImage, sendButton;
     String chatId;
 
@@ -52,36 +60,56 @@ public class ChatActivity extends AppCompatActivity {
         CollectionReference users = FirebaseFirestore.getInstance().collection("Users");
         users.document(fellowUID).get().addOnSuccessListener(documentSnapshot -> {
             fellow = documentSnapshot.toObject(User.class);
-            assert fellow != null;
-            username.setText(fellow.getUsername());
-            Glide.with(this).load(fellow.getProfileImageUrl()).into(profileImage);
+            if (fellow != null) {
+                username.setText(fellow.getUsername());
+                Glide.with(this).load(fellow.getProfileImageUrl()).into(profileImage);
 
-            messageAdapter = new MessageAdapter(this, fellow.getProfileImageUrl());
-            recyclerViewMessages.setHasFixedSize(true);
-            recyclerViewMessages.setAdapter(messageAdapter);
+                messageAdapter = new MessageAdapter(this, fellow.getProfileImageUrl());
+                recyclerViewMessages.setHasFixedSize(true);
+                recyclerViewMessages.setAdapter(messageAdapter);
 
-            getChatData();
-            readMessages();
+                getChatData();
+                readMessages();
+            }
         });
+
         sendButton.setOnClickListener(v -> {
             String messageString = message.getText().toString();
             if (!messageString.isEmpty()) {
                 String messageId = DateTimeFormatter.getCurrentTime();
+                Log.d(TAG, "Creating new message with ID: " + messageId);
                 message.setText("");
                 Message newMessage = new Message(messageId, messageString, myUID);
-                chatReference.child(messageId).setValue(newMessage);
+                Log.d(TAG, "Message details: ID=" + newMessage.getMessageId() + ", Text=" + newMessage.getText() + ", SenderID=" + newMessage.getSenderId());
+
+                Map<String, Object> messageMap = new HashMap<>();
+                messageMap.put("messageId", newMessage.getMessageId());
+                messageMap.put("text", newMessage.getText());
+                messageMap.put("senderId", newMessage.getSenderId());
+
+                chatReference.add(messageMap)
+                        .addOnSuccessListener(documentReference -> Log.d(TAG, "Message sent successfully"))
+                        .addOnFailureListener(e -> Log.e(TAG, "Failed to send message", e));
             }
         });
     }
 
     private void readMessages() {
-        chatReference.addValueEventListener(new ValueEventListener() {
+        chatReference.orderBy("messageId").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot chatSnapshot) {
+            public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.e(TAG, "Listen failed.", e);
+                    return;
+                }
+
                 messageAdapter.clearMessages();
                 Message lastMessage = null;
-                for (DataSnapshot messageSnapshot : chatSnapshot.getChildren()) {
-                    Message nextMessage = messageSnapshot.getValue(Message.class);
+                for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                    DocumentSnapshot documentSnapshot = dc.getDocument();
+                    Message nextMessage = documentSnapshot.toObject(Message.class);
+                    Log.d(TAG, "Message received: ID=" + nextMessage.getMessageId() + ", Text=" + nextMessage.getText() + ", SenderID=" + nextMessage.getSenderId());
+
                     String nextDateMonth = DateTimeFormatter.getDateMonth(nextMessage.getMessageId());
 
                     if (lastMessage == null) {
@@ -105,19 +133,13 @@ public class ChatActivity extends AppCompatActivity {
                 if (messageAdapter.getItemCount() > 0)
                     recyclerViewMessages.getLayoutManager().smoothScrollToPosition(recyclerViewMessages, new RecyclerView.State(), messageAdapter.getItemCount() - 1);
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
         });
     }
 
     private void getChatData() {
         boolean less = myUID.compareTo(fellowUID) < 0;
         chatId = less ? myUID + '&' + fellowUID : fellowUID + '&' + myUID;
-        chatReference = FirebaseDatabase.getInstance().getReference().child("chats").child(chatId);
+        chatReference = FirebaseFirestore.getInstance().collection("chats").document(chatId).collection("messages");
+        Log.d(TAG, "Chat data reference path: " + chatReference.getPath());
     }
-
-    // TODO: finish issue of close keyboard
 }

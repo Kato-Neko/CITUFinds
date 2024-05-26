@@ -1,96 +1,106 @@
 package com.jamburger.kitter.activities;
 
 import android.os.Bundle;
-import android.view.MotionEvent;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.jamburger.kitter.R;
 import com.jamburger.kitter.adapters.CommentAdapter;
 import com.jamburger.kitter.components.Comment;
-import com.jamburger.kitter.utilities.DateTimeFormatter;
-import com.jamburger.kitter.utilities.KeyboardManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommentsActivity extends AppCompatActivity {
-    RecyclerView recyclerViewComments;
-    EditText commentText;
-    ImageView sendButton, closeButton;
-    CommentAdapter commentAdapter;
-    List<Comment> comments;
-    DatabaseReference commentsReference;
+    private EditText commentInput;
+    private ImageView postCommentButton;
+    private RecyclerView recyclerView;
+    private CommentAdapter commentAdapter;
+    private List<Comment> commentList;
+    private String postId;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comments);
 
-        recyclerViewComments = findViewById(R.id.recyclerview_comments);
-        commentText = findViewById(R.id.et_comment);
-        sendButton = findViewById(R.id.btn_send_message);
-        closeButton = findViewById(R.id.btn_close);
+        // Initialize views
+        commentInput = findViewById(R.id.et_comment);
+        postCommentButton = findViewById(R.id.btn_send_message);
+        recyclerView = findViewById(R.id.recyclerview_comments);
+        commentList = new ArrayList<>();
+        commentAdapter = new CommentAdapter(this, commentList);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(commentAdapter);
 
-        comments = new ArrayList<>();
-        commentAdapter = new CommentAdapter(this, comments);
-        recyclerViewComments.setHasFixedSize(true);
-        recyclerViewComments.setAdapter(commentAdapter);
-        String postId = getIntent().getExtras().getString("postid");
-        commentsReference = FirebaseDatabase.getInstance().getReference().child("comments").child(postId);
+        // Initialize Firestore
+        db = FirebaseFirestore.getInstance();
 
-        readComments();
-        boolean openKeyboard = getIntent().getExtras().getBoolean("openKeyboard");
-        if (openKeyboard) {
-            commentText.requestFocus();
-            KeyboardManager.openKeyboard(this);
-        }
+        // Get postId from intent
+        postId = getIntent().getStringExtra("postid");
 
-        sendButton.setOnClickListener(v -> {
-            String commentString = commentText.getText().toString();
-            if (commentString.isEmpty()) return;
-            DocumentReference userReference = FirebaseFirestore.getInstance().collection("Users").document(FirebaseAuth.getInstance().getUid());
-
-            String commentId = DateTimeFormatter.getCurrentTime();
-            Comment comment = new Comment(userReference.getId(), commentString, commentId);
-
-            KeyboardManager.closeKeyboard(this);
-            commentText.clearFocus();
-            commentText.setText("");
-            commentsReference.child(commentId).setValue(comment).addOnSuccessListener(unused -> {
-                comments.add(comment);
-                commentAdapter.notifyDataSetChanged();
-            });
+        // Set up the post comment button
+        postCommentButton.setOnClickListener(v -> {
+            String commentText = commentInput.getText().toString();
+            if (!TextUtils.isEmpty(commentText)) {
+                postComment(commentText);
+            }
         });
-        closeButton.setOnClickListener(view -> finish());
+
+        // Load existing comments
+        loadComments();
     }
 
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        View focused = getCurrentFocus();
-        if (focused != null) {
-            KeyboardManager.closeKeyboard(this);
+    private void postComment(String commentText) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "You need to be logged in to comment.", Toast.LENGTH_SHORT).show();
+            return;
         }
-        return super.dispatchTouchEvent(event);
+
+        String userId = user.getUid();
+        CollectionReference commentsRef = db.collection("comments").document(postId).collection("postComments");
+        String commentId = commentsRef.document().getId();
+        Comment comment = new Comment(userId, commentText, commentId);
+
+        commentsRef.document(commentId).set(comment).addOnSuccessListener(aVoid -> {
+            commentInput.setText(""); // Clear input field
+            Toast.makeText(this, "Comment posted", Toast.LENGTH_SHORT).show();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Failed to post comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
     }
 
-    private void readComments() {
-        commentsReference.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                comments.clear();
-                for (DataSnapshot commentSnapshot : task.getResult().getChildren()) {
-                    comments.add(commentSnapshot.getValue(Comment.class));
+    private void loadComments() {
+        CollectionReference commentsRef = db.collection("comments").document(postId).collection("postComments");
+        commentsRef.addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Toast.makeText(CommentsActivity.this, "Failed to load comments: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (snapshots != null) {
+                commentList.clear();
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    Comment comment = doc.toObject(Comment.class);
+                    commentList.add(comment);
                 }
                 commentAdapter.notifyDataSetChanged();
             }
