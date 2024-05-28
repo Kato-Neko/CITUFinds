@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="app_name">#CEFFFFFF</color>
+    <color name="app_name">@color/gold</color>
     <color name="inverted">@color/white</color>
     <color name="text_strong">#D5D5D5</color>
     <color name="text_light">#BFBFBF</color>
