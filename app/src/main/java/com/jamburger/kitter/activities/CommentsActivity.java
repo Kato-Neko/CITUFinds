@@ -23,6 +23,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.jamburger.kitter.R;
 import com.jamburger.kitter.adapters.CommentAdapter;
 import com.jamburger.kitter.components.Comment;
+import com.jamburger.kitter.activities.NotificationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,19 @@ public class CommentsActivity extends AppCompatActivity {
         commentsRef.document(commentId).set(comment).addOnSuccessListener(aVoid -> {
             commentInput.setText(""); // Clear input field
             Toast.makeText(this, "Comment posted", Toast.LENGTH_SHORT).show();
+
+            // Fetch the user's details for the notification
+            FirebaseFirestore.getInstance().collection("Users").document(userId).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String username = documentSnapshot.getString("username"); // Assumes 'username' is the field for user's real name
+                            String details = "Comment ID: " + commentId; // Customize details as needed
+                            NotificationUtils.sendNotification("Comment", username + " commented on your post", userId, details);
+                        }
+                    })
+                    .addOnFailureListener(e1 -> {
+                        Toast.makeText(CommentsActivity.this, "Failed to fetch user details: " + e1.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Failed to post comment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });

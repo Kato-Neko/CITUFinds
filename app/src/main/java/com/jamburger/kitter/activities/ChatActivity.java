@@ -16,28 +16,28 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.Query;
 import com.jamburger.kitter.R;
 import com.jamburger.kitter.adapters.MessageAdapter;
 import com.jamburger.kitter.components.Message;
 import com.jamburger.kitter.components.User;
 import com.jamburger.kitter.utilities.DateTimeFormatter;
+import com.jamburger.kitter.activities.NotificationUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ChatActivity extends AppCompatActivity {
     private static final String TAG = "ChatActivity";
-    User fellow;
-    String myUID, fellowUID;
-    TextView username;
-    EditText message;
-    MessageAdapter messageAdapter;
-    RecyclerView recyclerViewMessages;
-    CollectionReference chatReference;
-    ImageView profileImage, sendButton;
-    String chatId;
+    private User fellow;
+    private String myUID, fellowUID;
+    private TextView username;
+    private EditText message;
+    private MessageAdapter messageAdapter;
+    private RecyclerView recyclerViewMessages;
+    private CollectionReference chatReference;
+    private ImageView profileImage, sendButton;
+    private String chatId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +92,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void readMessages() {
-        chatReference.orderBy("messageId").addSnapshotListener((snapshots, e) -> {
+        chatReference.orderBy("messageId", Query.Direction.ASCENDING).addSnapshotListener((snapshots, e) -> {
             if (e != null) {
                 Log.e(TAG, "Listen failed.", e);
                 return;
@@ -128,6 +128,9 @@ public class ChatActivity extends AppCompatActivity {
                     recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
                 }
             }
+
+            String details = "User sent you a message in the chat";
+            NotificationUtils.sendNotification("Message", "User sent you a message", fellowUID, details);
         });
     }
 

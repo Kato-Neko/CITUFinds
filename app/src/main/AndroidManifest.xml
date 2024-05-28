@@ -45,6 +45,8 @@
         <activity
             android:name=".activities.AddInfoActivity"
             android:exported="false" />
+        <activity android:name=".activities.NotificationActivity"
+            android:exported="false"/>
         <activity
             android:name=".activities.EditInfoActivity"
             android:exported="false" />
@@ -96,10 +98,10 @@
             android:value="@string/default_notification_channel_id" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@mipmap/ic_finds_foreground" />
+            android:resource="@mipmap/ic_kitter_foreground" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/maroon" />
+            android:resource="@color/ic_kitter_background" />
     </application>
 
 </manifest>

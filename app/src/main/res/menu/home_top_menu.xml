@@ -21,4 +21,9 @@
         android:icon="@drawable/ic_message"
         android:title=""
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/nav_notifications"
+        android:icon="@drawable/ic_notification"
+        android:title=""
+        app:showAsAction="ifRoom" />
 </menu>
