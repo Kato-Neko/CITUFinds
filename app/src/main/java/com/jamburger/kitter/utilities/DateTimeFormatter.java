@@ -71,4 +71,8 @@ public class DateTimeFormatter {
             hours = 12;
         return hours + ":" + minutes + " " + meridiem;
     }
+    public static String formatTimestamp(Date timestamp) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        return sdf.format(new Date(String.valueOf(timestamp)));
+    }
 }

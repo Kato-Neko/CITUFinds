@@ -33,6 +33,7 @@ import com.jamburger.kitter.components.Post;
 import com.jamburger.kitter.components.User;
 import com.jamburger.kitter.fragments.SelectSourceDialogFragment;
 import com.jamburger.kitter.utilities.DateTimeFormatter;
+import com.jamburger.kitter.activities.NotificationUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,14 +41,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PostActivity extends AppCompatActivity {
-    ImageView imageView;
-    TextView caption;
-    Uri filePath = null;
-    StorageReference storageReference;
-    FirebaseFirestore db;
-    FirebaseUser user;
-    String currentPhotoPath;
-    ActivityResultLauncher<Intent> fromGalleryResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+    private ImageView imageView;
+    private TextView caption;
+    private Uri filePath = null;
+    private StorageReference storageReference;
+    private FirebaseFirestore db;
+    private FirebaseUser user;
+    private String currentPhotoPath;
+
+    private final ActivityResultLauncher<Intent> fromGalleryResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (result.getResultCode() == Activity.RESULT_OK) {
             Intent data = result.getData();
             if (data != null && data.getData() != null) {
@@ -59,7 +61,8 @@ public class PostActivity extends AppCompatActivity {
             startMainActivity();
         }
     });
-    ActivityResultLauncher<Intent> fromCameraResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+
+    private final ActivityResultLauncher<Intent> fromCameraResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (result.getResultCode() == Activity.RESULT_OK) {
             showActivity(true);
             Glide.with(this).load(filePath).into(imageView);
@@ -83,17 +86,14 @@ public class PostActivity extends AppCompatActivity {
         storageReference = FirebaseStorage.getInstance().getReference();
         db = FirebaseFirestore.getInstance();
 
-        closeButton.setOnClickListener(view -> {
-            startMainActivity();
-        });
+        closeButton.setOnClickListener(view -> startMainActivity());
         postButton.setOnClickListener(view -> {
             closeKeyboard();
             publishPost();
         });
 
         String type = getIntent().getStringExtra("type");
-
-        if (type.equals("picture")) {
+        if ("picture".equals(type)) {
             showDialog();
             showActivity(false);
         } else {
@@ -102,7 +102,7 @@ public class PostActivity extends AppCompatActivity {
         }
     }
 
-    void showDialog() {
+    private void showDialog() {
         SelectSourceDialogFragment newFragment = SelectSourceDialogFragment.newInstance();
         newFragment.show(getSupportFragmentManager(), "dialog");
     }
@@ -111,12 +111,7 @@ public class PostActivity extends AppCompatActivity {
         String timeStamp = DateTimeFormatter.getCurrentTime();
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
         currentPhotoPath = image.getAbsolutePath();
         return image;
     }
@@ -125,25 +120,26 @@ public class PostActivity extends AppCompatActivity {
         View view = this.getCurrentFocus();
         if (view != null) {
             InputMethodManager manager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            if (manager != null) {
+                manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
         }
     }
 
     private void takePicture() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
+            File photoFile;
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                // Error occurred while creating the File
+                Toast.makeText(this, "Error occurred while creating the file", Toast.LENGTH_SHORT).show();
+                return;
             }
             if (photoFile != null) {
-                filePath = FileProvider.getUriForFile(this,
-                        "com.jamburger.kitter.fileprovider",
-                        photoFile);
+                filePath = FileProvider.getUriForFile(this, "com.jamburger.kitter.fileprovider", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, filePath);
-                fromCameraResultLauncher.launch(Intent.createChooser(takePictureIntent, "Select Picture"));
+                fromCameraResultLauncher.launch(takePictureIntent);
             }
         }
     }
@@ -159,11 +155,9 @@ public class PostActivity extends AppCompatActivity {
 
             ref.putFile(filePath).addOnSuccessListener(snapshot -> {
                 Toast.makeText(this, "Image Uploaded!!", Toast.LENGTH_SHORT).show();
-
-                storageReference.child("Posts").child(postId).getDownloadUrl().addOnSuccessListener(uri -> {
+                ref.getDownloadUrl().addOnSuccessListener(uri -> {
                     Post post = new Post(user.getUid(), postId, uri.toString(), caption.getText().toString());
                     DocumentReference postRef = db.collection("Posts").document(postId);
-
                     postRef.set(post).addOnCompleteListener(task -> {
                         progressDialog.dismiss();
                         startMainActivity();
@@ -174,35 +168,36 @@ public class PostActivity extends AppCompatActivity {
                 progressDialog.dismiss();
                 Toast.makeText(this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }).addOnProgressListener(taskSnapshot -> {
-                double progress =
-                        ((100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount()));
+                double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
                 progressDialog.setMessage("Uploaded " + (int) progress + "%");
             });
         } else {
             String postId = DateTimeFormatter.getCurrentTime();
-            Post post = new Post(user.getUid(), postId, "", "");
-            post.setKitt(caption.getText().toString());
+            Post post = new Post(user.getUid(), postId, "", caption.getText().toString());
             DocumentReference postRef = db.collection("Posts").document(postId);
-            postRef.set(post).addOnCompleteListener(task -> {
-                startMainActivity();
-            });
+            postRef.set(post).addOnCompleteListener(task -> startMainActivity());
             updateUserPostsAndFeed(postRef);
         }
     }
 
-    void updateUserPostsAndFeed(DocumentReference postReference) {
+    private void updateUserPostsAndFeed(DocumentReference postReference) {
         DocumentReference userReference = db.collection("Users").document(user.getUid());
         userReference.update("posts", FieldValue.arrayUnion(postReference));
 
         Map<String, Object> map = new HashMap<>();
         map.put("postReference", postReference);
         map.put("visited", false);
+
         userReference.collection("feed").document(postReference.getId()).set(map);
+
         userReference.get().addOnSuccessListener(userSnapshot -> {
             User me = userSnapshot.toObject(User.class);
-            assert me != null;
-            for (DocumentReference follower : me.getFollowers()) {
-                follower.collection("feed").document(postReference.getId()).set(map);
+            if (me != null) {
+                for (DocumentReference follower : me.getFollowers()) {
+                    follower.collection("feed").document(postReference.getId()).set(map);
+                }
+                String details = "User posted a new message"; // Provide any additional details you want to include in the notification
+                NotificationUtils.sendNotification("Post", "User posted a new message", user.getUid(), details);
             }
         });
     }
@@ -222,8 +217,7 @@ public class PostActivity extends AppCompatActivity {
     }
 
     private void showActivity(boolean set) {
-        if (set) findViewById(R.id.post_parent).setVisibility(View.VISIBLE);
-        else findViewById(R.id.post_parent).setVisibility(View.INVISIBLE);
+        findViewById(R.id.post_parent).setVisibility(set ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void selectFromCamera() {
