@@ -54,6 +54,13 @@
             android:name=".activities.CommentsActivity"
             android:exported="false" />
         <activity
+            android:name=".components.Notification"
+            android:exported="false" />
+        <activity android:name=".activities.NotificationDetailsActivity"
+            android:exported="false"/>
+
+
+        <activity
             android:name=".activities.PostActivity"
             android:exported="false" />
         <activity

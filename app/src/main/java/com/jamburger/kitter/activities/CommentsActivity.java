@@ -1,13 +1,12 @@
 package com.jamburger.kitter.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,22 +14,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.jamburger.kitter.R;
 import com.jamburger.kitter.adapters.CommentAdapter;
 import com.jamburger.kitter.components.Comment;
-import com.jamburger.kitter.activities.NotificationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommentsActivity extends AppCompatActivity {
     private EditText commentInput;
-    private ImageView postCommentButton;
+    private ImageView postCommentButton,closeButton;
     private RecyclerView recyclerView;
     private CommentAdapter commentAdapter;
     private List<Comment> commentList;
@@ -50,6 +45,7 @@ public class CommentsActivity extends AppCompatActivity {
         commentAdapter = new CommentAdapter(this, commentList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(commentAdapter);
+        closeButton = findViewById(R.id.btn_close);
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -64,10 +60,14 @@ public class CommentsActivity extends AppCompatActivity {
                 postComment(commentText);
             }
         });
-
+        closeButton.setOnClickListener(v -> {
+            // Close the CommentsActivity
+            finish();
+        });
         // Load existing comments
         loadComments();
     }
+
 
     private void postComment(String commentText) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -91,7 +91,7 @@ public class CommentsActivity extends AppCompatActivity {
                         if (documentSnapshot.exists()) {
                             String username = documentSnapshot.getString("username"); // Assumes 'username' is the field for user's real name
                             String details = "Comment ID: " + commentId; // Customize details as needed
-                            NotificationUtils.sendNotification("Comment", username + " commented on your post", userId, details);
+                            NotificationUtils.sendNotification("Comment", username + " commented on your post", userId, details, username);
                         }
                     })
                     .addOnFailureListener(e1 -> {
@@ -110,8 +110,7 @@ public class CommentsActivity extends AppCompatActivity {
                 return;
             }
 
-            if (snapshots != null) {
-                commentList.clear();
+            if (snapshots != null) {commentList.clear();
                 for (QueryDocumentSnapshot doc : snapshots) {
                     Comment comment = doc.toObject(Comment.class);
                     commentList.add(comment);
@@ -120,4 +119,12 @@ public class CommentsActivity extends AppCompatActivity {
             }
         });
     }
+    public void onBackPressed() {
+        super.onBackPressed();
+        // Navigate to the previous activity
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
 }
+

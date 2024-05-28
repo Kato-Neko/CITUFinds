@@ -1,51 +1,38 @@
 package com.jamburger.kitter.activities;
 
 import android.util.Log;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
+
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.jamburger.kitter.components.Notification;
-import java.util.Date;
 
 public class NotificationUtils {
     private static final String TAG = "NotificationUtils";
 
-    public static void sendNotification(String type, String message, String targetUserId, String details) {
-        String userId = FirebaseAuth.getInstance().getUid();
-        if (userId == null) {
-            Log.e(TAG, "User ID is null");
-            return;
-        }
-
+    public static void sendNotification(String title, String message, String recipientId, String details, String userName) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String notificationId = db.collection("Users").document(recipientId).collection("notifications").document().getId();
 
-        db.collection("Users").document(userId).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null) {
-                DocumentSnapshot document = task.getResult();
-                String userName = document.getString("name");
+        Timestamp timestamp = Timestamp.now();
 
-                Notification notification = new Notification(
-                        generateId(db),
-                        type,
-                        message,
-                        details,
-                        new Date(),
-                        type,
-                        userId,
-                        userName
-                );
+        // Create notification object
+        Notification notification = new Notification(notificationId, title, message, details, userName, timestamp);
 
-                db.collection("Users").document(targetUserId).collection("notifications").document(notification.getId())
-                        .set(notification.toMap())
-                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Notification added successfully"))
-                        .addOnFailureListener(e -> Log.e(TAG, "Error adding notification", e));
-            } else {
-                Log.e(TAG, "Error fetching user name", task.getException());
-            }
-        });
+        // Log the notification details
+        Log.d(TAG, "Sending notification: " + notification.toString());
+
+        // Set notification data in Firestore
+        db.collection("Users").document(recipientId).collection("notifications").document(notificationId)
+                .set(notification)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Notification sent successfully: " + notificationId))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to send notification", e));
     }
 
-    private static String generateId(FirebaseFirestore db) {
-        return db.collection("Users").document().getId();
+
+    public static void addInitialNotifications(String recipientId) {
+        Log.d(TAG, "Adding initial notifications for user: " + recipientId);
+        sendNotification("Welcome", "Welcome to Kitter!", recipientId, "Thank you for joining us.", "System");
+        sendNotification("First Post", "You have made your first post!", recipientId, "Congratulations on your first post.", "System");
     }
+
 }

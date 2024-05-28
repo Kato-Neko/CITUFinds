@@ -47,7 +47,18 @@ public class SignupEmailActivity extends AppCompatActivity {
     }
 
     private boolean validate(String strEmail, String strPassword, String strConfirmPassword) {
-        return !strEmail.isEmpty() && !strPassword.isEmpty() && strPassword.length() >= 6 && strPassword.equals(strConfirmPassword);
+        boolean isEmailValid = strEmail.endsWith(".edu") && !strEmail.isEmpty();
+        boolean isPasswordValid = !strPassword.isEmpty() && strPassword.length() >= 6 && strPassword.equals(strConfirmPassword);
+
+        if (!isEmailValid) {
+            // Set email EditText text color to red
+            email.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        } else {
+            // Reset email EditText text color to default
+            email.setTextColor(getResources().getColor(android.R.color.black));
+        }
+
+        return isEmailValid && isPasswordValid;
     }
 
     private void signupWithEmail(String strEmail, String strPassword) {

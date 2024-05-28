@@ -26,6 +26,19 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     private Context mContext;
     private List<Comment> mComments;
 
+    // Listener for item clicks
+    private OnItemClickListener mListener;
+
+    // Interface for item click listener
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    // Method to set the click listener
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        mListener = listener;
+    }
+
     public CommentAdapter(Context mContext, List<Comment> mComments) {
         this.mContext = mContext;
         this.mComments = mComments;
@@ -45,21 +58,29 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         publisherReference.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 User user = snapshot.toObject(User.class);
-                Glide.with(mContext).load(user.getProfileImageUrl()).into(holder.profileImage);
-                holder.username.setText(user.getUsername());
-                holder.time.setText(DateTimeFormatter.getTimeDifference(comment.getCommentId(), true));
-                holder.comment.setText(comment.getText());
+                if (user != null && mContext != null) {
+                    Glide.with(mContext).load(user.getProfileImageUrl()).into(holder.profileImage);
+                    holder.username.setText(user.getUsername());
+                    holder.time.setText(DateTimeFormatter.getTimeDifference(comment.getCommentId(), false));
+                    holder.comment.setText(comment.getText());
 
-                holder.container.setOnClickListener(view -> {
-                    Intent intent = new Intent(mContext, OtherProfileActivity.class);
-                    intent.putExtra("userid", user.getId());
-                    mContext.startActivity(intent);
-                });
+                    // Set the timestamp text
+                    //holder.time.setText(DateTimeFormatter.getTimeDifference(comment.getCommentId(), true));
+
+                    // Set click listener for the container view
+                    holder.container.setOnClickListener(view -> {
+                        int pos = holder.getAdapterPosition();
+                        if (pos != RecyclerView.NO_POSITION && mListener != null) {
+                            mListener.onItemClick(pos);
+                        }
+                    });
+                }
             }
         }).addOnFailureListener(e -> {
             // Handle error
         });
     }
+
 
     @Override
     public int getItemCount() {

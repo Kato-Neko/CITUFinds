@@ -196,8 +196,9 @@ public class PostActivity extends AppCompatActivity {
                 for (DocumentReference follower : me.getFollowers()) {
                     follower.collection("feed").document(postReference.getId()).set(map);
                 }
-                String details = "User posted a new message"; // Provide any additional details you want to include in the notification
-                NotificationUtils.sendNotification("Post", "User posted a new message", user.getUid(), details);
+                String details = "User posted a new message";
+                NotificationUtils.sendNotification("Post", "User posted a new message", user.getUid(), details, "AdditionalArgument");
+
             }
         });
     }

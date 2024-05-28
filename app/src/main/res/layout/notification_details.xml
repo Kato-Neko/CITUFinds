@@ -1,0 +1,36 @@
+<!-- activity_notification_details.xml -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/notification_details_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="8dp"
+        android:text="Title" />
+
+    <TextView
+        android:id="@+id/notification_details_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_below="@id/notification_details_title"
+        android:layout_centerHorizontal="true"
+        android:text="Message" />
+
+    <!-- Placeholder TextView -->
+    <TextView
+        android:id="@+id/placeholder_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No notification details available"
+        android:layout_below="@id/notification_details_message"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone" /> <!-- Initially hidden -->
+
+</RelativeLayout>

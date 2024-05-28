@@ -1,7 +1,6 @@
 package com.jamburger.kitter.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,54 +11,58 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.jamburger.kitter.R;
 import com.jamburger.kitter.components.Notification;
-import com.jamburger.kitter.utilities.DateTimeFormatter;
-import com.jamburger.kitter.activities.TargetActivity;
 
 import java.util.List;
 
-public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
-    private Context mContext;
-    private List<Notification> mNotifications;
+public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
-    public NotificationAdapter(Context context, List<Notification> notifications) {
-        mContext = context;
-        mNotifications = notifications;
+    private Context context;
+    private List<Notification> notifications;
+    private OnItemClickListener listener;
+
+    public NotificationAdapter(Context context, List<Notification> notifications, OnItemClickListener listener) {
+        this.context = context;
+        this.notifications = notifications;
+        this.listener = listener;
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(Notification notification);
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_notification, parent, false);
-        return new ViewHolder(view);
+    public NotificationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_notification, parent, false);
+        return new NotificationViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Notification notification = mNotifications.get(position);
+    public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
+        Notification notification = notifications.get(position);
         holder.title.setText(notification.getTitle());
-        holder.message.setText(notification.getUserName() + " " + notification.getMessage());
-        holder.timestamp.setText(DateTimeFormatter.formatTimestamp(notification.getTimestamp()));
-
+        holder.message.setText(notification.getMessage());
+        holder.details.setText(notification.getDetails());
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(mContext, TargetActivity.class);
-            intent.putExtra("details", notification.getDetails());
-            mContext.startActivity(intent);
+            if (listener != null) {
+                listener.onItemClick(notification);
+            }
         });
     }
 
     @Override
     public int getItemCount() {
-        return mNotifications.size();
+        return notifications.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title, message, timestamp;
+    public static class NotificationViewHolder extends RecyclerView.ViewHolder {
+        TextView title, message, details;
 
-        public ViewHolder(@NonNull View itemView) {
+        public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.notification_title);
             message = itemView.findViewById(R.id.notification_message);
-            timestamp = itemView.findViewById(R.id.notification_timestamp);
+            details = itemView.findViewById(R.id.notification_details);
         }
     }
 }

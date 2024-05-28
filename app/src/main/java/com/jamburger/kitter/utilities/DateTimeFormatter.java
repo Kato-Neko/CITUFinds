@@ -2,12 +2,18 @@ package com.jamburger.kitter.utilities;
 
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class DateTimeFormatter {
     public static DateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ENGLISH);
+
+    static {
+        format.setTimeZone(TimeZone.getTimeZone("Asia/Manila")); // Set default time zone to Philippine Time
+    }
 
     public static String getTimeDifference(String dateId, boolean returnShorter) {
         try {
@@ -51,28 +57,54 @@ public class DateTimeFormatter {
     }
 
     public static String getDateMonth(String dateId) {
-        String[] strings = dateId.split("-", 6);
-        int month = Integer.parseInt(strings[1]);
-        int date = Integer.parseInt(strings[2]);
-        return date + " " + new DateFormatSymbols().getMonths()[month - 1];
+        try {
+            Date date = format.parse(dateId);
+            if (date == null) {
+                return null;
+            }
+            SimpleDateFormat monthFormat = new SimpleDateFormat("d MMMM", Locale.ENGLISH);
+            monthFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+            return monthFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static String getCurrentTime() {
+        format.setTimeZone(TimeZone.getTimeZone("Asia/Manila")); // Ensure the format generates in Philippine Time
         return format.format(new Date());
     }
 
     public static String getHoursMinutes(String dateId) {
-        String[] strings = dateId.split("-", 6);
-        int hours = Integer.parseInt(strings[3]);
-        int minutes = Integer.parseInt(strings[4]);
-        String meridiem = hours >= 12 ? "PM" : "AM";
-        hours %= 12;
-        if (hours == 0)
-            hours = 12;
-        return hours + ":" + minutes + " " + meridiem;
+        try {
+            Date date = format.parse(dateId);
+            if (date == null) {
+                return null;
+            }
+            SimpleDateFormat hoursMinutesFormat = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
+            hoursMinutesFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+            return hoursMinutesFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
-    public static String formatTimestamp(Date timestamp) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-        return sdf.format(new Date(String.valueOf(timestamp)));
+
+    public static String formatTimestamp(String timestamp) {
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault());
+            inputFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+
+            Date date = inputFormat.parse(timestamp);
+
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            outputFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

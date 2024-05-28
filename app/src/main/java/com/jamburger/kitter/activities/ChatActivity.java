@@ -123,15 +123,20 @@ public class ChatActivity extends AppCompatActivity {
                     }
 
                     messageAdapter.addMessage(nextMessage);
+
+                    // Send notification when a message is received
+                    sendNotificationForMessage(nextMessage);
                 }
                 if (messageAdapter.getItemCount() > 0) {
                     recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
                 }
             }
-
-            String details = "User sent you a message in the chat";
-            NotificationUtils.sendNotification("Message", "User sent you a message", fellowUID, details);
         });
+    }
+
+    private void sendNotificationForMessage(Message message) {
+        String details = fellowUID+" sent you a message in the chat";
+        NotificationUtils.sendNotification("New Message",myUID, fellowUID, details, message.getSenderId());
     }
 
     private void getChatData() {

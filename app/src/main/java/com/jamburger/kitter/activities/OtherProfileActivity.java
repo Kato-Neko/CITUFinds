@@ -49,7 +49,7 @@ public class OtherProfileActivity extends AppCompatActivity {
 
         followButton.setOnClickListener(v -> toggleFollow());
         messageButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, OtherProfileActivity.class);
+            Intent intent = new Intent(this, ChatActivity.class);
             intent.putExtra("userid", userid);
             startActivity(intent);
         });
