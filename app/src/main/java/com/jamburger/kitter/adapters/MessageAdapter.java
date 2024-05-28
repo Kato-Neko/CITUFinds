@@ -1,14 +1,18 @@
 package com.jamburger.kitter.adapters;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -69,7 +73,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 holder.profileImage.setVisibility(View.GONE);
                 Log.d("MessageAdapter", "Message sent by me, hiding profile image");
             } else {
-                holder.container.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+                // Set chat bubble colors for messages sent by other
+                holder.messageCard.setBackgroundColor(ContextCompat.getColor(mContext, R.color.maroon)); // Set the background color here
+                holder.messageCard.setRadius(mContext.getResources().getDimension(R.dimen.card_corner_radius));
+                holder.message.setTextColor(ContextCompat.getColor(mContext, R.color.text_message));
+                holder.time.setTextColor(ContextCompat.getColor(mContext, R.color.text_message));
                 if (nextMessage == null || !nextMessage.getSenderId().equals(message.getSenderId())) {
                     holder.profileImage.setVisibility(View.VISIBLE);
                     Glide.with(mContext).load(fellowProfileImageUrl).into(holder.profileImage);
@@ -84,6 +92,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             Log.d("MessageAdapter", "Timestamp: " + message.getText());
         }
     }
+
 
     @Override
     public int getItemCount() {
@@ -110,6 +119,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         TextView timestamp;
         View container;
 
+        CardView messageCard;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             message = itemView.findViewById(R.id.txt_message);
@@ -117,6 +128,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             profileImage = itemView.findViewById(R.id.img_profile);
             container = itemView.findViewById(R.id.container);
             timestamp = itemView.findViewById(R.id.txt_timestamp);
+            messageCard = itemView.findViewById(R.id.message_card);
         }
     }
 }

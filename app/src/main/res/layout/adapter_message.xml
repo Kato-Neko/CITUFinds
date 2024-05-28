@@ -4,24 +4,8 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="3dp">
-
-    <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_alignStart="@id/message_card"
-        android:layout_alignTop="@id/message_card"
-        android:layout_marginStart="-8dp"
-        android:layout_marginTop="-4dp"
-        android:src="@drawable/ic_filter"
-        app:tint="@color/background_message" />
-
-    <View
-        android:layout_width="10dp"
-        android:layout_height="10dp"
-        android:layout_alignStart="@id/message_card"
-        android:layout_alignTop="@id/message_card"
-        android:background="@color/background_message" />
+    android:layout_marginTop="3dp"
+    app:cardCornerRadius="10dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/img_profile"
@@ -40,10 +24,10 @@
         android:elevation="0dp"
         android:orientation="vertical"
         android:outlineProvider="none"
-        app:cardBackgroundColor="@color/background_message"
-        app:cardCornerRadius="10dp">
+        app:cardBackgroundColor="@color/inverted">
 
         <LinearLayout
+            android:id="@+id/layoutChatContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"

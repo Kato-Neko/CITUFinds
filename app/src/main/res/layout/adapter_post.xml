@@ -84,6 +84,7 @@
 
         <ImageView
             android:id="@+id/btn_like"
+            android:padding="2dp"
             android:layout_width="@dimen/icon_size_big"
             android:layout_height="@dimen/icon_size_big"
             android:src="@drawable/ic_heart_outlined" />
@@ -93,7 +94,7 @@
             android:id="@+id/btn_comment"
             android:layout_width="@dimen/icon_size_big"
             android:layout_height="@dimen/icon_size_big"
-            android:layout_marginStart="20dp"
+            android:layout_marginStart="10dp"
             android:layout_toEndOf="@id/btn_like"
             android:padding="2dp"
             android:src="@drawable/ic_comment" />
@@ -143,6 +144,7 @@
             android:layout_below="@id/txt_comment_count"
             android:textColor="@color/text_very_light"
             android:textSize="@dimen/text_small" />
+
     </RelativeLayout>
 
     <com.google.android.material.divider.MaterialDivider

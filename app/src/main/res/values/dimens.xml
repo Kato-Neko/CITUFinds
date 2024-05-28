@@ -12,4 +12,5 @@
     <dimen name="notification_icon_size">50dp</dimen>
     <dimen name="setting_icon_size">25dp</dimen>
     <dimen name="post_profile_image_size">35dp</dimen>
+    <dimen name="card_corner_radius">10dp</dimen>
 </resources>

@@ -12,6 +12,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Kitter"
+rootProject.name = "Finding Kitten"
 include ':app'
 include ':app:backend'

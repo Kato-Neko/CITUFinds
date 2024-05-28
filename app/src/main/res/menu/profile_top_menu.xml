@@ -7,6 +7,7 @@
         android:icon="@drawable/ic_options"
         android:title=""
         app:showAsAction="always">
+
         <menu>
             <item
                 android:id="@+id/nav_saved"
@@ -17,5 +18,6 @@
                 android:icon="@drawable/ic_settings"
                 android:title="Settings" />
         </menu>
+
     </item>
 </menu>

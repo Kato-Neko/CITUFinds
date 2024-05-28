@@ -5,6 +5,9 @@
       <module name="Finds.app.backend" target="9" />
       <module name="Finds.app.backend.main" target="9" />
       <module name="Finds.app.backend.test" target="9" />
+      <module name="Kitter.app.backend" target="9" />
+      <module name="Kitter.app.backend.main" target="9" />
+      <module name="Kitter.app.backend.test" target="9" />
     </bytecodeTargetLevel>
   </component>
 </project>
