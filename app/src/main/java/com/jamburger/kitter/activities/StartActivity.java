@@ -32,7 +32,6 @@ import com.jamburger.kitter.utilities.PermissionManager;
 public class StartActivity extends AppCompatActivity implements ForceUpdateChecker.OnUpdateNeededListener {
     GoogleSignInClient gsc;
     ImageView logo;
-    TextView appName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +41,6 @@ public class StartActivity extends AppCompatActivity implements ForceUpdateCheck
         PermissionManager.askPermissions(this);
 
         logo = findViewById(R.id.img_logo);
-        appName = findViewById(R.id.txt_appname);
 
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -62,10 +60,8 @@ public class StartActivity extends AppCompatActivity implements ForceUpdateCheck
 
     private void letTheShitBegin() {
         Animation logoAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_animation);
-        Animation appNameAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.app_name_animation);
         logo.startAnimation(logoAnimation);
-        appName.startAnimation(appNameAnimation);
-        appNameAnimation.setAnimationListener(new Animation.AnimationListener() {
+        logoAnimation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
 
