@@ -98,6 +98,7 @@
             android:padding="2dp"
             android:src="@drawable/ic_comment" />
 
+
         <ImageView
             android:id="@+id/btn_save"
             android:layout_width="@dimen/icon_size_big"
