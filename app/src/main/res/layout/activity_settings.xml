@@ -60,47 +60,6 @@
                 style="@style/Settings.Header"
                 android:text="Privacy and Security" />
 
-            <RelativeLayout
-                android:id="@+id/setting_account_privacy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    style="@style/Settings.Option.Iconed"
-                    android:layout_width="wrap_content"
-                    android:text="Account privacy"
-                    app:drawableEndCompat="@android:color/transparent"
-                    app:drawableStartCompat="@drawable/ic_lock" />
-
-                <TextView
-                    android:id="@+id/txt_account_privacy"
-                    style="@style/Settings.Option.Value"
-                    android:text="Public"
-                    app:drawableEndCompat="@drawable/ic_next" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/setting_block_accounts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    style="@style/Settings.Option.Iconed"
-                    android:layout_width="wrap_content"
-                    android:text="Blocked accounts"
-                    app:drawableEndCompat="@android:color/transparent"
-                    app:drawableStartCompat="@drawable/ic_block" />
-
-
-                <TextView
-                    android:id="@+id/txt_blocked_count"
-                    style="@style/Settings.Option.Value"
-                    android:text="0"
-                    app:drawableEndCompat="@drawable/ic_next" />
-
-            </RelativeLayout>
-
             <TextView
                 android:id="@+id/setting_change_password"
                 style="@style/Settings.Option.Iconed"
@@ -124,12 +83,6 @@
             <TextView
                 style="@style/Settings.Header"
                 android:text="Login" />
-
-            <TextView
-                android:id="@+id/setting_add_account"
-                style="@style/Settings.Option.NonIconed"
-                android:text="Add account"
-                android:textColor="@color/text_light_blue" />
 
             <TextView
                 android:id="@+id/setting_logout"

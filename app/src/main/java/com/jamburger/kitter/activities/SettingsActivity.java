@@ -43,21 +43,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         settingsList = findViewById(R.id.settings_list);
 
-        updateUserData();
         updateThemeOption();
         setOptionCLickListener();
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
-    }
-
-    private void updateUserData() {
-        userReference.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                User user = task.getResult().toObject(User.class);
-                assert user != null;
-                ((TextView) findViewById(R.id.txt_account_privacy)).setText(user.isPrivate() ? "Private" : "Public");
-                ((TextView) findViewById(R.id.txt_blocked_count)).setText(String.valueOf(user.getBlockedAccounts().size()));
-            }
-        });
     }
 
     private void updateThemeOption() {
@@ -87,8 +75,6 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(new Intent(this, EditInfoActivity.class));
                 } else if (optionId == R.id.setting_change_password) {
                     showRecoverPasswordDialog();
-                } else if (optionId == R.id.setting_block_accounts) {
-                    // Do nothing for now
                 } else if (optionId == R.id.setting_theme) {
                     Intent intentMine = new Intent(this, SettingsActivity.class);
                     intentMine.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -101,8 +87,6 @@ public class SettingsActivity extends AppCompatActivity {
                         editor.putBoolean("isDarkModeOn", true).apply();
                         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                     }
-                } else if (optionId == R.id.setting_add_account) {
-                    // Do nothing for now
                 } else if (optionId == R.id.setting_logout) {
                     googleSignInClient.signOut().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
