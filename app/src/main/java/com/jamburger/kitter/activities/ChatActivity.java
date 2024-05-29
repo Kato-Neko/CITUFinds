@@ -136,7 +136,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendNotificationForMessage(Message message) {
         String details = username+" sent you a message in the chat";
-        NotificationUtils.sendNotification("New Message",myUID, fellowUID, details, message.getSenderId());
+        NotificationUtils.sendNotification("New Message",username.toString(), fellow.toString(), details, message.getSenderId());
     }
 
     private void getChatData() {
