@@ -26,14 +26,6 @@
             android:layout_toEndOf="@id/btn_close"
             android:text="Chat" />
 
-        <ImageView
-            android:id="@+id/btn_search"
-            android:layout_width="@dimen/icon_size_big"
-            android:layout_height="@dimen/icon_size_big"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_search"
-            tools:ignore="UseAppTint" />
     </RelativeLayout>
 
     <com.google.android.material.divider.MaterialDivider
